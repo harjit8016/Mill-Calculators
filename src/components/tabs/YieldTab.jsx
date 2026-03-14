@@ -4,7 +4,6 @@ import FieldInput from '../ui/FieldInput.jsx';
 import VerdictTag from '../ui/VerdictTag.jsx';
 import { productOptions, productLabel, formatDecimal, formatInt } from '../../lib/calculations.js';
 import useYield from '../../hooks/useYield.js';
-import { signInWithGoogle } from '../../lib/firebase.js';
 
 const fmtPercent = (n) =>
   Number.isFinite(n)
@@ -12,7 +11,7 @@ const fmtPercent = (n) =>
     : '0.0';
 
 export default function YieldTab() {
-  const { inputs, update, result, recent, saved } = useYield();
+  const { inputs, update, result, recent } = useYield();
 
   const whatsappLink = useMemo(() => {
     const text = `My billet to bar yield is ${fmtPercent(result.yieldPct)}% on ${productLabel(inputs.product)}. How can I improve it?`;
@@ -30,26 +29,9 @@ export default function YieldTab() {
 
   return (
     <div className="screen">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-[18px] font-semibold text-gray-900">Billet to bar — yield calculator</h1>
-          <p className="text-[12px] text-gray-500 mt-1">Track yield loss and its cost per shift</p>
-        </div>
-        <div className="text-right text-[12px] text-blue-text">
-          <button
-            className="underline"
-            onClick={() => {
-              signInWithGoogle().catch((e) => console.error('google sign-in', e));
-            }}
-          >
-            Save data across devices? Sign in with Google
-          </button>
-          {saved && (
-            <div className="saved-toast mt-1">
-              <span className="toast-dot" /> Saved
-            </div>
-          )}
-        </div>
+      <div>
+        <h1 className="text-[18px] font-semibold text-gray-900">Billet to bar — yield calculator</h1>
+        <p className="text-[12px] text-gray-500 mt-1">Track yield loss and its cost per shift</p>
       </div>
 
       <div className="section mt-4">

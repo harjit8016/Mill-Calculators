@@ -5,7 +5,6 @@ import VerdictTag from '../ui/VerdictTag.jsx';
 import CostRow from '../ui/CostRow.jsx';
 import { productOptions, formatDecimal, formatInt } from '../../lib/calculations.js';
 import useBreakeven from '../../hooks/useBreakeven.js';
-import { signInWithGoogle } from '../../lib/firebase.js';
 
 const fmtPercent = (n) =>
   Number.isFinite(n)
@@ -13,7 +12,7 @@ const fmtPercent = (n) =>
     : '0.0';
 
 export default function BreakevenTab() {
-  const { inputs, update, result, recent, saved } = useBreakeven();
+  const { inputs, update, result, recent } = useBreakeven();
 
   const whatsappReduceCost = useMemo(() => {
     const text = `My TMT breakeven is ₹${formatDecimal(result.breakevenPerKg || 0)}/kg and safe price is ₹${formatDecimal(result.safePrice || 0)}/kg. How can I reduce cost per tonne?`;
@@ -39,24 +38,9 @@ export default function BreakevenTab() {
 
   return (
     <div className="screen">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-[18px] font-semibold text-gray-900">Scrap to TMT — breakeven</h1>
-          <p className="text-[12px] text-gray-500 mt-1">Know your floor price before you quote</p>
-        </div>
-        <div className="text-right text-[12px] text-blue-text">
-          <button
-            className="underline"
-            onClick={() => signInWithGoogle().catch((e) => console.error('google sign-in', e))}
-          >
-            Save data across devices? Sign in with Google
-          </button>
-          {saved && (
-            <div className="saved-toast mt-1">
-              <span className="toast-dot" /> Saved
-            </div>
-          )}
-        </div>
+      <div>
+        <h1 className="text-[18px] font-semibold text-gray-900">Scrap to TMT — breakeven</h1>
+        <p className="text-[12px] text-gray-500 mt-1">Know your floor price before you quote</p>
       </div>
 
       <div className="section mt-4">

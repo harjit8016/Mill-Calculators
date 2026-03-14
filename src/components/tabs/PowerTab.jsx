@@ -5,10 +5,9 @@ import VerdictTag from '../ui/VerdictTag.jsx';
 import ShiftRow from '../ui/ShiftRow.jsx';
 import usePower from '../../hooks/usePower.js';
 import { formatDecimal, formatInt } from '../../lib/calculations.js';
-import { signInWithGoogle } from '../../lib/firebase.js';
 
 export default function PowerTab() {
-  const { inputs, update, updateShift, result, recent, saved } = usePower();
+  const { inputs, update, updateShift, result, recent } = usePower();
 
   const whatsappHigh = useMemo(() => {
     const text = `My rolling mill power consumption is ${formatInt(result.avgUnitsPerT)} units per tonne. Target is ${inputs.targetUnitsPerTonne} units/tonne. What are the common causes of high power consumption and how to fix them?`;
@@ -39,21 +38,9 @@ export default function PowerTab() {
 
   return (
     <div className="screen">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-[18px] font-semibold text-gray-900">Power cost tracker</h1>
-          <p className="text-[12px] text-gray-500 mt-1">Track ₹/tonne across shifts — catch waste before it compounds</p>
-        </div>
-        <div className="text-right text-[12px] text-blue-text">
-          <button className="underline" onClick={() => signInWithGoogle().catch(console.error)}>
-            Save data across devices? Sign in with Google
-          </button>
-          {saved && (
-            <div className="saved-toast mt-1">
-              <span className="toast-dot" /> Saved
-            </div>
-          )}
-        </div>
+      <div>
+        <h1 className="text-[18px] font-semibold text-gray-900">Power cost tracker</h1>
+        <p className="text-[12px] text-gray-500 mt-1">Track ₹/tonne across shifts — catch waste before it compounds</p>
       </div>
 
       <div className="section mt-4">
