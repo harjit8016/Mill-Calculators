@@ -1,0 +1,166 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --tab-height: 60px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'system-ui', sans-serif;
+  background: #ffffff;
+  color: #1f2933;
+}
+
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  appearance: textfield;
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+}
+
+.screen {
+  flex: 1;
+  padding: 16px 16px calc(var(--tab-height) + 20px) 16px;
+}
+
+.section {
+  margin-bottom: 16px;
+}
+
+.section-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.field-label {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.field-input,
+.field-select {
+  height: 40px;
+  border: 1px solid #e2e2e2;
+  border-radius: 8px;
+  padding: 0 10px;
+  font-size: 14px;
+  width: 100%;
+  background: #fff;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--tab-height);
+  border-top: 1px solid #e5e7eb;
+  background: #ffffff;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  z-index: 50;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.tab-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 10px;
+  color: #9ca3af;
+}
+
+.tab-button-active {
+  color: #185FA5;
+  font-weight: 600;
+}
+
+.progress-bar-bg {
+  height: 10px;
+  border-radius: 999px;
+  background: #f0f4f8;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 10px;
+  border-radius: 999px;
+  background: #185FA5;
+}
+
+.cost-bar-bg {
+  height: 12px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  position: relative;
+}
+
+.cost-bar-fill {
+  height: 12px;
+  border-radius: 999px;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+hr.divider {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 12px 0;
+}
+
+.verdict-box {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  font-size: 13px;
+  color: #1f2937;
+}
+
+.saved-toast {
+  font-size: 12px;
+  color: #16a34a;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.toast-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #16a34a;
+}
+
+button:disabled {
+  opacity: 0.6;
+}

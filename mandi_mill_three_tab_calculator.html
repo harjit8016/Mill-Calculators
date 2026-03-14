@@ -1,0 +1,537 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root { --tab-h: 60px; }
+body { font-family: var(--font-sans); }
+.app { display: flex; flex-direction: column; min-height: 500px; }
+.screen { flex: 1; overflow-y: auto; padding: 16px 16px calc(var(--tab-h) + 16px) 16px; }
+.tab-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  height: var(--tab-h); background: var(--color-background-primary);
+  border-top: 0.5px solid var(--color-border-tertiary);
+  display: flex; z-index: 100;
+}
+.tab-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 3px; border: none; background: transparent;
+  cursor: pointer; font-family: var(--font-sans); padding: 6px 2px;
+}
+.tab-label { font-size: 10px; color: var(--color-text-secondary); }
+.tab-btn.active .tab-label { color: #185FA5; font-weight: 500; }
+.tab-icon { width: 20px; height: 20px; }
+
+.page { display: none; }
+.page.active { display: block; }
+
+.pg-header { margin-bottom: 1.25rem; }
+.pg-header h1 { font-size: 18px; font-weight: 500; color: var(--color-text-primary); line-height: 1.3; }
+.pg-header p { font-size: 12px; color: var(--color-text-secondary); margin-top: 3px; }
+
+.sec { margin-bottom: 1rem; }
+.sec-label { font-size: 10px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label { font-size: 11px; color: var(--color-text-secondary); }
+.field input, .field select {
+  height: 40px; padding: 0 10px;
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md);
+  font-size: 14px; font-family: var(--font-sans);
+  color: var(--color-text-primary); background: var(--color-background-primary); width: 100%;
+}
+.field input:focus, .field select:focus { outline: none; border-color: var(--color-border-primary); }
+.divider { border: none; border-top: 0.5px solid var(--color-border-tertiary); margin: 1rem 0; }
+
+.metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1rem; }
+.metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 12px; }
+.metric .m-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 3px; }
+.metric .m-val { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+.metric .m-unit { font-size: 11px; font-weight: 400; color: var(--color-text-secondary); }
+.metric.blue { background: #E6F1FB; } .metric.blue .m-val { color: #185FA5; } .metric.blue .m-label { color: #185FA5; opacity:0.8; }
+.metric.green { background: #EAF3DE; } .metric.green .m-val { color: #3B6D11; } .metric.green .m-label { color: #3B6D11; opacity:0.8; }
+.metric.red { background: #FCEBEB; } .metric.red .m-val { color: #A32D2D; } .metric.red .m-label { color: #A32D2D; opacity:0.8; }
+.metric.amber { background: #FAEEDA; } .metric.amber .m-val { color: #854F0B; } .metric.amber .m-label { color: #854F0B; opacity:0.8; }
+
+.bar-wrap { margin-bottom: 1rem; }
+.bar-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--color-text-secondary); margin-bottom: 5px; }
+.bar-bg { height: 10px; border-radius: 6px; background: var(--color-background-secondary); overflow: hidden; position: relative; }
+.bar-fill { height: 100%; border-radius: 6px; position: absolute; left: 0; top: 0; transition: width 0.4s; }
+.bar-sell { height: 100%; border-radius: 6px; background: #639922; opacity: 0.5; position: absolute; left: 0; top: 0; transition: width 0.4s; }
+.bar-cost { height: 100%; background: #E24B4A; position: absolute; left: 0; top: 0; transition: width 0.4s; }
+.bar-legend { display: flex; justify-content: space-between; font-size: 10px; color: var(--color-text-secondary); margin-top: 4px; }
+.legend-dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 3px; }
+
+.cost-table { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; margin-bottom: 1rem; }
+.cost-row { display: flex; justify-content: space-between; padding: 9px 12px; font-size: 12px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.cost-row:last-child { border-bottom: none; font-weight: 500; font-size: 13px; background: var(--color-background-secondary); }
+.cost-name { color: var(--color-text-secondary); } .cost-val { color: var(--color-text-primary); }
+
+.verdict { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 12px 14px; margin-bottom: 1rem; font-size: 13px; color: var(--color-text-primary); line-height: 1.6; }
+.v-tag { display: inline-block; font-size: 10px; font-weight: 500; padding: 3px 8px; border-radius: 20px; margin-bottom: 6px; }
+.tag-good { background: #EAF3DE; color: #3B6D11; }
+.tag-avg  { background: #FAEEDA; color: #854F0B; }
+.tag-poor { background: #FCEBEB; color: #A32D2D; }
+.tag-profit { background: #EAF3DE; color: #3B6D11; }
+.tag-loss   { background: #FCEBEB; color: #A32D2D; }
+.tag-thin   { background: #FAEEDA; color: #854F0B; }
+
+.price-box { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 12px; margin-bottom: 1rem; }
+.price-box-title { font-size: 10px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+.price-tiers { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.tier { border-radius: var(--border-radius-md); padding: 8px 6px; text-align: center; }
+.tier .t-label { font-size: 10px; margin-bottom: 3px; }
+.tier .t-val { font-size: 15px; font-weight: 500; }
+.tier .t-sub { font-size: 9px; margin-top: 2px; opacity: 0.75; }
+.tier.floor  { background:#FCEBEB; } .tier.floor  .t-label,.tier.floor  .t-val,.tier.floor  .t-sub { color:#A32D2D; }
+.tier.target { background:#FAEEDA; } .tier.target .t-label,.tier.target .t-val,.tier.target .t-sub { color:#854F0B; }
+.tier.good-t { background:#EAF3DE; } .tier.good-t .t-label,.tier.good-t .t-val,.tier.good-t .t-sub { color:#3B6D11; }
+.custom-row { display:flex; align-items:center; gap:8px; margin-top:10px; padding-top:10px; border-top:0.5px solid var(--color-border-tertiary); flex-wrap:wrap; }
+.custom-row label { font-size:12px; color:var(--color-text-secondary); white-space:nowrap; }
+.custom-row input { height:34px; padding:0 8px; border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-md); font-size:13px; font-family:var(--font-sans); color:var(--color-text-primary); background:var(--color-background-primary); width:90px; }
+.custom-row .computed { font-size:14px; font-weight:500; color:#185FA5; }
+
+/* Power page specifics */
+.shift-table { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); overflow: hidden; margin-bottom: 1rem; }
+.shift-header { display: grid; grid-template-columns: 80px 1fr 1fr 1fr; gap: 0; background: var(--color-background-secondary); border-bottom: 0.5px solid var(--color-border-tertiary); }
+.shift-header span { font-size: 10px; font-weight: 500; color: var(--color-text-secondary); padding: 7px 8px; text-align: center; }
+.shift-header span:first-child { text-align: left; }
+.shift-row { display: grid; grid-template-columns: 80px 1fr 1fr 1fr; gap: 0; border-bottom: 0.5px solid var(--color-border-tertiary); align-items: center; }
+.shift-row:last-child { border-bottom: none; }
+.shift-name { font-size: 12px; color: var(--color-text-secondary); padding: 6px 8px; }
+.shift-row input { border: none; border-left: 0.5px solid var(--color-border-tertiary); border-radius: 0; height: 36px; font-size: 13px; text-align: center; background: var(--color-background-primary); color: var(--color-text-primary); font-family: var(--font-sans); padding: 0 4px; width: 100%; }
+.shift-row input:focus { outline: none; background: #E6F1FB; }
+.shift-computed { font-size: 12px; font-weight: 500; color: var(--color-text-primary); text-align: center; padding: 6px 4px; border-left: 0.5px solid var(--color-border-tertiary); }
+.shift-computed.good { color: #3B6D11; }
+.shift-computed.bad  { color: #A32D2D; }
+
+.comparison-bar { margin-bottom: 1rem; }
+.cbar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.cbar-label { font-size: 11px; color: var(--color-text-secondary); width: 60px; flex-shrink: 0; }
+.cbar-bg { flex: 1; height: 8px; border-radius: 4px; background: var(--color-background-secondary); overflow: hidden; }
+.cbar-fill { height: 100%; border-radius: 4px; transition: width 0.4s; }
+.cbar-val { font-size: 11px; font-weight: 500; color: var(--color-text-primary); width: 52px; text-align: right; flex-shrink: 0; }
+
+.action-btn { width:100%; height:42px; border-radius:var(--border-radius-md); border:0.5px solid var(--color-border-secondary); background:transparent; font-family:var(--font-sans); font-size:13px; color:var(--color-text-primary); cursor:pointer; margin-bottom:8px; }
+.action-btn:hover { background:var(--color-background-secondary); }
+
+@media (max-width: 360px) {
+  .grid3 { grid-template-columns: 1fr 1fr; }
+  .price-tiers { grid-template-columns: 1fr 1fr; }
+  .tier:last-child { grid-column: span 2; }
+  .shift-header, .shift-row { grid-template-columns: 64px 1fr 1fr 1fr; }
+}
+</style>
+
+<div class="app">
+  <div class="screen">
+
+    <!-- PAGE 1: Yield -->
+    <div id="page-yield" class="page active">
+      <div class="pg-header">
+        <h1>Billet to bar — yield calculator</h1>
+        <p>Track yield loss and its cost per shift</p>
+      </div>
+      <div class="sec">
+        <div class="sec-label">Billet input</div>
+        <div class="grid2">
+          <div class="field"><label>Billet weight (kg)</label><input type="number" id="y-billetWt" value="5000" oninput="calcYield()"></div>
+          <div class="field"><label>Billet price (₹/kg)</label><input type="number" id="y-billetPrice" value="42" oninput="calcYield()"></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label">Finished bar output</div>
+        <div class="grid3">
+          <div class="field">
+            <label>Product</label>
+            <select id="y-product" onchange="calcYield()">
+              <option value="tmt8">TMT 8mm</option>
+              <option value="tmt10" selected>TMT 10mm</option>
+              <option value="tmt12">TMT 12mm</option>
+              <option value="tmt16">TMT 16mm</option>
+              <option value="tmt20">TMT 20mm</option>
+              <option value="angle">Angle/Channel</option>
+              <option value="flat">Flat bar</option>
+            </select>
+          </div>
+          <div class="field"><label>Actual output (kg)</label><input type="number" id="y-outputWt" value="4550" oninput="calcYield()"></div>
+          <div class="field"><label>Selling price (₹/kg)</label><input type="number" id="y-sellPrice" value="48" oninput="calcYield()"></div>
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="sec-label">Results — this shift</div>
+      <div class="metrics">
+        <div class="metric blue"><div class="m-label">Yield</div><div class="m-val" id="y-yieldPct">—<span class="m-unit">%</span></div></div>
+        <div class="metric red"><div class="m-label">Loss (kg)</div><div class="m-val" id="y-lossKg">—</div></div>
+        <div class="metric red"><div class="m-label">Loss in ₹</div><div class="m-val">₹<span id="y-lossRs">—</span></div></div>
+        <div class="metric green"><div class="m-label">Revenue</div><div class="m-val">₹<span id="y-revenue">—</span></div></div>
+      </div>
+      <div class="bar-wrap">
+        <div class="bar-row"><span>Yield</span><span id="y-barLabel">—</span></div>
+        <div class="bar-bg"><div class="bar-fill" id="y-bar" style="width:91%;background:#378ADD"></div></div>
+      </div>
+      <div class="verdict"><div class="v-tag" id="y-vTag">—</div><br><span id="y-vText">Enter shift data above.</span></div>
+      <button class="action-btn" onclick="sendPrompt('How can I improve my billet to bar yield? Current yield is ' + document.getElementById('y-yieldPct').textContent + ' on ' + document.getElementById('y-product').options[document.getElementById('y-product').selectedIndex].text)">How to improve yield ↗</button>
+    </div>
+
+    <!-- PAGE 2: Breakeven -->
+    <div id="page-break" class="page">
+      <div class="pg-header">
+        <h1>Scrap to TMT — breakeven</h1>
+        <p>Know your floor price before you quote</p>
+      </div>
+      <div class="sec">
+        <div class="sec-label">Raw material</div>
+        <div class="grid3">
+          <div class="field"><label>Scrap (₹/kg)</label><input type="number" id="b-scrapPrice" value="32" oninput="calcBreak()"></div>
+          <div class="field"><label>Sponge iron (₹/kg)</label><input type="number" id="b-spongePrice" value="28" oninput="calcBreak()"></div>
+          <div class="field"><label>Scrap % in mix</label><input type="number" id="b-scrapPct" value="60" min="0" max="100" oninput="calcBreak()"></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label">Production costs (per tonne)</div>
+        <div class="grid2">
+          <div class="field"><label>Power rate (₹/unit)</label><input type="number" id="b-powerRate" value="7.5" step="0.1" oninput="calcBreak()"></div>
+          <div class="field"><label>Units per tonne</label><input type="number" id="b-unitsPerT" value="550" oninput="calcBreak()"></div>
+          <div class="field"><label>Labour + overhead (₹/t)</label><input type="number" id="b-labour" value="800" oninput="calcBreak()"></div>
+          <div class="field"><label>Rolling + other (₹/t)</label><input type="number" id="b-rolling" value="600" oninput="calcBreak()"></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-label">Yield & selling price</div>
+        <div class="grid3">
+          <div class="field"><label>Yield (%)</label><input type="number" id="b-yield" value="92" step="0.1" oninput="calcBreak()"></div>
+          <div class="field">
+            <label>Product</label>
+            <select id="b-product" onchange="calcBreak()">
+              <option value="tmt10" selected>TMT 10mm</option>
+              <option value="tmt12">TMT 12mm</option>
+              <option value="tmt16">TMT 16mm</option>
+              <option value="angle">Angle/Channel</option>
+              <option value="flat">Flat bar</option>
+            </select>
+          </div>
+          <div class="field"><label>Selling price (₹/kg)</label><input type="number" id="b-sellPrice" value="48" oninput="calcBreak()"></div>
+        </div>
+      </div>
+      <hr class="divider">
+      <div class="price-box">
+        <div class="price-box-title">Minimum price to quote</div>
+        <div class="price-tiers">
+          <div class="tier floor"><div class="t-label">Floor</div><div class="t-val">₹<span id="b-floor">—</span></div><div class="t-sub">break even</div></div>
+          <div class="tier target"><div class="t-label">Safe</div><div class="t-val">₹<span id="b-safe">—</span></div><div class="t-sub">₹1k/t margin</div></div>
+          <div class="tier good-t"><div class="t-label">Good</div><div class="t-val">₹<span id="b-good">—</span></div><div class="t-sub">₹2k/t margin</div></div>
+        </div>
+        <div class="custom-row">
+          <label>I want ₹</label>
+          <input type="number" id="b-desiredMargin" value="1500" oninput="calcBreak()">
+          <label>/tonne → quote</label>
+          <div class="computed">₹<span id="b-custom">—</span>/kg</div>
+        </div>
+      </div>
+      <div class="sec-label">Cost breakdown per tonne</div>
+      <div class="cost-table">
+        <div class="cost-row"><span class="cost-name">Raw material (yield adjusted)</span><span class="cost-val" id="b-cRaw">—</span></div>
+        <div class="cost-row"><span class="cost-name">Power cost</span><span class="cost-val" id="b-cPower">—</span></div>
+        <div class="cost-row"><span class="cost-name">Labour + overhead</span><span class="cost-val" id="b-cLabour">—</span></div>
+        <div class="cost-row"><span class="cost-name">Rolling + other</span><span class="cost-val" id="b-cRolling">—</span></div>
+        <div class="cost-row"><span class="cost-name">Total cost per tonne</span><span class="cost-val" id="b-cTotal">—</span></div>
+      </div>
+      <div class="metrics">
+        <div class="metric blue"><div class="m-label">Breakeven price</div><div class="m-val">₹<span id="b-breakeven">—</span><span class="m-unit">/kg</span></div></div>
+        <div class="metric" id="b-marginCard"><div class="m-label">Margin/tonne</div><div class="m-val" id="b-marginVal">—</div></div>
+        <div class="metric"><div class="m-label">Revenue/tonne</div><div class="m-val">₹<span id="b-revenue">—</span></div></div>
+        <div class="metric" id="b-marginPctCard"><div class="m-label">Margin %</div><div class="m-val"><span id="b-marginPct">—</span><span class="m-unit">%</span></div></div>
+      </div>
+      <div class="bar-wrap">
+        <div class="bar-row"><span>Cost vs selling price</span><span id="b-barLegend">—</span></div>
+        <div class="bar-bg">
+          <div class="bar-sell" id="b-barSell" style="width:100%"></div>
+          <div class="bar-cost" id="b-barCost" style="width:85%"></div>
+        </div>
+        <div class="bar-legend">
+          <span><span class="legend-dot" style="background:#E24B4A"></span>Total cost</span>
+          <span><span class="legend-dot" style="background:#639922;opacity:0.7"></span>Selling price</span>
+        </div>
+      </div>
+      <div class="verdict"><div class="v-tag" id="b-vTag">—</div><br><span id="b-vText">Enter costs above.</span></div>
+      <button class="action-btn" onclick="sendPrompt('My TMT breakeven is ₹' + document.getElementById('b-breakeven').textContent + '/kg and safe price is ₹' + document.getElementById('b-safe').textContent + '/kg. How can I reduce cost per tonne?')">How to reduce cost per tonne ↗</button>
+      <button class="action-btn" onclick="sendPrompt('Scrap price just increased ₹2/kg. Breakeven was ₹' + document.getElementById('b-breakeven').textContent + '/kg. New minimum selling price?')">Scrap price went up — what now ↗</button>
+    </div>
+
+    <!-- PAGE 3: Power Cost -->
+    <div id="page-power" class="page">
+      <div class="pg-header">
+        <h1>Power cost tracker</h1>
+        <p>Track ₹/tonne across shifts — catch waste before it compounds</p>
+      </div>
+
+      <div class="sec">
+        <div class="sec-label">Power rate & benchmark</div>
+        <div class="grid3">
+          <div class="field"><label>₹ per unit (kWh)</label><input type="number" id="p-rate" value="7.5" step="0.1" oninput="calcPower()"></div>
+          <div class="field"><label>Target units/tonne</label><input type="number" id="p-target" value="520" oninput="calcPower()"></div>
+          <div class="field"><label>Tonnes/shift (avg)</label><input type="number" id="p-avgTonnes" value="18" oninput="calcPower()"></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-label">Shift log — units consumed & tonnes produced</div>
+        <div class="shift-table">
+          <div class="shift-header">
+            <span>Shift</span><span>Units (kWh)</span><span>Tonnes</span><span>₹/tonne</span>
+          </div>
+          <div class="shift-row">
+            <span class="shift-name">Morning</span>
+            <input type="number" id="p-s1u" value="9800" oninput="calcPower()">
+            <input type="number" id="p-s1t" value="19" oninput="calcPower()">
+            <span class="shift-computed" id="p-s1c">—</span>
+          </div>
+          <div class="shift-row">
+            <span class="shift-name">Afternoon</span>
+            <input type="number" id="p-s2u" value="10200" oninput="calcPower()">
+            <input type="number" id="p-s2t" value="18" oninput="calcPower()">
+            <span class="shift-computed" id="p-s2c">—</span>
+          </div>
+          <div class="shift-row">
+            <span class="shift-name">Night</span>
+            <input type="number" id="p-s3u" value="11100" oninput="calcPower()">
+            <input type="number" id="p-s3t" value="17" oninput="calcPower()">
+            <span class="shift-computed" id="p-s3c">—</span>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider">
+      <div class="sec-label">Today's summary</div>
+
+      <div class="metrics">
+        <div class="metric blue"><div class="m-label">Avg units/tonne</div><div class="m-val" id="p-avgUnits">—</div></div>
+        <div class="metric" id="p-costCard"><div class="m-label">Avg ₹/tonne</div><div class="m-val" id="p-avgCost">—</div></div>
+        <div class="metric"><div class="m-label">Total units today</div><div class="m-val" id="p-totalUnits">—</div></div>
+        <div class="metric"><div class="m-label">Total power bill</div><div class="m-val">₹<span id="p-totalBill">—</span></div></div>
+      </div>
+
+      <div class="sec-label">Shift comparison</div>
+      <div class="comparison-bar" id="p-bars"></div>
+
+      <div class="sec-label">vs target benchmark</div>
+      <div class="bar-wrap">
+        <div class="bar-row"><span>Your avg units/tonne</span><span id="p-vsTargetLabel">—</span></div>
+        <div class="bar-bg">
+          <div class="bar-fill" id="p-targetBar" style="width:0%;background:#378ADD"></div>
+        </div>
+      </div>
+
+      <div class="verdict"><div class="v-tag" id="p-vTag">—</div><br><span id="p-vText">Enter shift data above.</span></div>
+
+      <div class="sec-label" style="margin-top:0.5rem">Extra cost if target missed</div>
+      <div class="metrics">
+        <div class="metric amber"><div class="m-label">Extra units wasted</div><div class="m-val" id="p-extraUnits">—<span class="m-unit"> kWh</span></div></div>
+        <div class="metric amber"><div class="m-label">Extra cost today</div><div class="m-val">₹<span id="p-extraCost">—</span></div></div>
+      </div>
+
+      <button class="action-btn" onclick="sendPrompt('My rolling mill power consumption is ' + document.getElementById(\'p-avgUnits\').textContent + ' units per tonne. Target is ' + document.getElementById(\'p-target\').value + ' units/tonne. What are the common causes of high power consumption in induction furnace based rolling mills and how to fix them?')">Why is my power consumption high ↗</button>
+      <button class="action-btn" onclick="sendPrompt('Night shift uses significantly more power per tonne than morning shift in my rolling mill. What operational reasons could cause this and how do I investigate?')">Night shift uses more power — why ↗</button>
+    </div>
+
+  </div>
+
+  <!-- Bottom Tab Bar -->
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tab-yield" onclick="switchTab('yield')">
+      <svg class="tab-icon" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="14" width="4" height="6" rx="1" fill="currentColor"/>
+        <rect x="9" y="9" width="4" height="11" rx="1" fill="currentColor"/>
+        <rect x="16" y="4" width="4" height="16" rx="1" fill="currentColor"/>
+        <path d="M3 13L9 8L14 11L20 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      </svg>
+      <span class="tab-label">Yield</span>
+    </button>
+    <button class="tab-btn" id="tab-break" onclick="switchTab('break')">
+      <svg class="tab-icon" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="2" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.2" fill="none"/>
+        <path d="M6 11h10M11 6v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="11" cy="11" r="3" stroke="currentColor" stroke-width="1.2" fill="none"/>
+      </svg>
+      <span class="tab-label">Breakeven</span>
+    </button>
+    <button class="tab-btn" id="tab-power" onclick="switchTab('power')">
+      <svg class="tab-icon" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+        <path d="M13 2L5 13h7l-3 7 10-11h-7L13 2z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="none"/>
+      </svg>
+      <span class="tab-label">Power</span>
+    </button>
+  </div>
+</div>
+
+<script>
+function fmt(n) { return Math.round(n).toLocaleString('en-IN'); }
+
+function switchTab(tab) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.remove('active');
+    b.style.color = '';
+  });
+  document.getElementById('page-' + tab).classList.add('active');
+  const btn = document.getElementById('tab-' + tab);
+  btn.classList.add('active');
+  btn.style.color = '#185FA5';
+}
+
+document.querySelectorAll('.tab-btn').forEach(b => {
+  b.style.color = 'var(--color-text-secondary)';
+});
+document.getElementById('tab-yield').style.color = '#185FA5';
+
+const benchmarks = { tmt8:[91,93],tmt10:[92,94],tmt12:[92.5,94.5],tmt16:[93,95],tmt20:[93,95.5],angle:[90,92],flat:[89,92] };
+const pNames = { tmt8:'8mm TMT',tmt10:'10mm TMT',tmt12:'12mm TMT',tmt16:'16mm TMT',tmt20:'20mm TMT',angle:'Angle/Channel',flat:'Flat bar' };
+
+function calcYield() {
+  const bWt = parseFloat(document.getElementById('y-billetWt').value)||0;
+  const bP  = parseFloat(document.getElementById('y-billetPrice').value)||0;
+  const oWt = parseFloat(document.getElementById('y-outputWt').value)||0;
+  const sP  = parseFloat(document.getElementById('y-sellPrice').value)||0;
+  const prod = document.getElementById('y-product').value;
+  if (!bWt||!oWt) return;
+  const y = (oWt/bWt)*100;
+  const lossKg = bWt-oWt;
+  document.getElementById('y-yieldPct').innerHTML = y.toFixed(1)+'<span class="m-unit">%</span>';
+  document.getElementById('y-lossKg').textContent = fmt(lossKg)+' kg';
+  document.getElementById('y-lossRs').textContent = fmt(lossKg*bP);
+  document.getElementById('y-revenue').textContent = fmt(oWt*sP);
+  document.getElementById('y-bar').style.width = Math.min(y,100)+'%';
+  document.getElementById('y-barLabel').textContent = y.toFixed(1)+'% becomes bar';
+  const [lo,hi] = benchmarks[prod];
+  const tag=document.getElementById('y-vTag'), txt=document.getElementById('y-vText');
+  const extraKg = Math.max(0,((lo/100)-(oWt/bWt))*1000);
+  if (y>=hi) { tag.className='v-tag tag-good'; tag.textContent='Excellent yield'; txt.textContent=`${y.toFixed(1)}% is above benchmark (${lo}–${hi}%) for ${pNames[prod]}. Well managed shift.`; }
+  else if (y>=lo) { tag.className='v-tag tag-avg'; tag.textContent='Average yield'; txt.textContent=`${y.toFixed(1)}% is within benchmark (${lo}–${hi}%) for ${pNames[prod]}. Room to improve.`; }
+  else { tag.className='v-tag tag-poor'; tag.textContent='Below benchmark'; txt.textContent=`${y.toFixed(1)}% is below benchmark (${lo}–${hi}%). Losing ~${Math.round(extraKg)} kg extra per tonne — ₹${fmt(extraKg*bP)} per tonne wasted.`; }
+}
+
+function calcBreak() {
+  const scrapP  = parseFloat(document.getElementById('b-scrapPrice').value)||0;
+  const spongeP = parseFloat(document.getElementById('b-spongePrice').value)||0;
+  const scrapPct= parseFloat(document.getElementById('b-scrapPct').value)||60;
+  const pwrRate = parseFloat(document.getElementById('b-powerRate').value)||0;
+  const unitsT  = parseFloat(document.getElementById('b-unitsPerT').value)||0;
+  const labour  = parseFloat(document.getElementById('b-labour').value)||0;
+  const rolling = parseFloat(document.getElementById('b-rolling').value)||0;
+  const yld     = parseFloat(document.getElementById('b-yield').value)||92;
+  const sellP   = parseFloat(document.getElementById('b-sellPrice').value)||0;
+  const desiredM= parseFloat(document.getElementById('b-desiredMargin').value)||0;
+  const blended = (scrapP*scrapPct/100)+(spongeP*(100-scrapPct)/100);
+  const rawT    = (blended*1000)/(yld/100);
+  const pwrT    = pwrRate*unitsT;
+  const totalCost = rawT+pwrT+labour+rolling;
+  const bkKg    = totalCost/1000;
+  const sellT   = sellP*1000;
+  const marginT = sellT-totalCost;
+  const marginPct = sellT>0?(marginT/sellT)*100:0;
+  document.getElementById('b-floor').textContent   = bkKg.toFixed(2);
+  document.getElementById('b-safe').textContent    = ((totalCost+1000)/1000).toFixed(2);
+  document.getElementById('b-good').textContent    = ((totalCost+2000)/1000).toFixed(2);
+  document.getElementById('b-custom').textContent  = ((totalCost+desiredM)/1000).toFixed(2);
+  document.getElementById('b-cRaw').textContent    = '₹'+fmt(rawT);
+  document.getElementById('b-cPower').textContent  = '₹'+fmt(pwrT);
+  document.getElementById('b-cLabour').textContent = '₹'+fmt(labour);
+  document.getElementById('b-cRolling').textContent= '₹'+fmt(rolling);
+  document.getElementById('b-cTotal').textContent  = '₹'+fmt(totalCost);
+  document.getElementById('b-breakeven').textContent = bkKg.toFixed(2);
+  document.getElementById('b-revenue').textContent   = fmt(sellT);
+  document.getElementById('b-marginPct').textContent = marginPct.toFixed(1);
+  const mc = document.getElementById('b-marginCard');
+  document.getElementById('b-marginVal').textContent = (marginT>=0?'+':'')+'₹'+fmt(marginT);
+  mc.className = 'metric '+(marginT>2000?'green':marginT>0?'amber':'red');
+  document.getElementById('b-marginPctCard').className = 'metric '+(marginPct>5?'green':marginPct>0?'amber':'red');
+  const maxV = Math.max(totalCost,sellT,1);
+  document.getElementById('b-barCost').style.width = (totalCost/maxV*100).toFixed(1)+'%';
+  document.getElementById('b-barSell').style.width = (sellT/maxV*100).toFixed(1)+'%';
+  document.getElementById('b-barLegend').textContent = 'Cost ₹'+fmt(totalCost)+' / Sell ₹'+fmt(sellT);
+  const gap=sellP-bkKg;
+  const tag=document.getElementById('b-vTag'),txt=document.getElementById('b-vText');
+  if (marginT>3000){tag.className='v-tag tag-profit';tag.textContent='Healthy margin';txt.textContent=`Making ₹${fmt(marginT)}/tonne (${marginPct.toFixed(1)}%). ₹${gap.toFixed(2)}/kg above breakeven. Safe to roll.`;}
+  else if(marginT>500){tag.className='v-tag tag-thin';tag.textContent='Thin margin';txt.textContent=`Only ₹${fmt(marginT)}/tonne (${marginPct.toFixed(1)}%). A ₹${(gap/2).toFixed(1)}/kg rise in scrap wipes half your profit. Quote at least ₹${((totalCost+1000)/1000).toFixed(2)}/kg.`;}
+  else if(marginT>0){tag.className='v-tag tag-thin';tag.textContent='Near breakeven';txt.textContent=`Barely profitable at ₹${fmt(marginT)}/tonne. Do not quote below ₹${((totalCost+1000)/1000).toFixed(2)}/kg.`;}
+  else{tag.className='v-tag tag-loss';tag.textContent='Rolling at a loss';txt.textContent=`Losing ₹${fmt(Math.abs(marginT))}/tonne. Raise selling price by ₹${Math.abs(gap).toFixed(2)}/kg or stop rolling.`;}
+}
+
+function calcPower() {
+  const rate   = parseFloat(document.getElementById('p-rate').value)||7.5;
+  const target = parseFloat(document.getElementById('p-target').value)||520;
+  const avgTonnes = parseFloat(document.getElementById('p-avgTonnes').value)||18;
+  const shifts = [
+    { u: parseFloat(document.getElementById('p-s1u').value)||0, t: parseFloat(document.getElementById('p-s1t').value)||0, label:'Morning', cEl:'p-s1c' },
+    { u: parseFloat(document.getElementById('p-s2u').value)||0, t: parseFloat(document.getElementById('p-s2t').value)||0, label:'Afternoon', cEl:'p-s2c' },
+    { u: parseFloat(document.getElementById('p-s3u').value)||0, t: parseFloat(document.getElementById('p-s3t').value)||0, label:'Night', cEl:'p-s3c' },
+  ];
+
+  let totalU=0, totalT=0;
+  const shiftCosts = [];
+
+  shifts.forEach(s => {
+    const upt = s.t>0 ? s.u/s.t : 0;
+    const cpt = upt*rate;
+    shiftCosts.push({ label:s.label, upt, cpt });
+    const el = document.getElementById(s.cEl);
+    el.textContent = s.t>0 ? '₹'+fmt(cpt) : '—';
+    el.className = 'shift-computed '+(upt>target*1.05?'bad':upt>0&&upt<=target?'good':'');
+    totalU += s.u; totalT += s.t;
+  });
+
+  const avgUPT = totalT>0 ? totalU/totalT : 0;
+  const avgCPT = avgUPT*rate;
+  const totalBill = totalU*rate;
+  const targetCPT = target*rate;
+  const extraUPT  = Math.max(0, avgUPT-target);
+  const extraCost = extraUPT*rate*totalT;
+
+  document.getElementById('p-avgUnits').textContent = avgUPT>0 ? avgUPT.toFixed(0) : '—';
+  document.getElementById('p-totalUnits').textContent = fmt(totalU);
+  document.getElementById('p-totalBill').textContent  = fmt(totalBill);
+
+  const cc = document.getElementById('p-costCard');
+  document.getElementById('p-avgCost').textContent = avgCPT>0?'₹'+fmt(avgCPT):'—';
+  cc.className = 'metric '+(avgCPT>targetCPT*1.05?'red':avgCPT>0&&avgCPT<=targetCPT?'green':'amber');
+
+  document.getElementById('p-extraUnits').textContent = extraUPT>0?Math.round(extraUPT*totalT):'0';
+  document.getElementById('p-extraCost').textContent  = extraCost>0?fmt(extraCost):'0';
+
+  const maxUPT = Math.max(...shiftCosts.map(s=>s.upt), target, 1);
+  const colors = ['#378ADD','#1D9E75','#D85A30'];
+  const barsEl = document.getElementById('p-bars');
+  barsEl.innerHTML = shiftCosts.map((s,i) =>
+    s.upt>0 ? `<div class="cbar-row">
+      <span class="cbar-label">${s.label}</span>
+      <div class="cbar-bg"><div class="cbar-fill" style="width:${(s.upt/maxUPT*100).toFixed(1)}%;background:${s.upt>target*1.05?'#E24B4A':colors[i]}"></div></div>
+      <span class="cbar-val">${s.upt.toFixed(0)} u/t</span>
+    </div>` : ''
+  ).join('') + `<div class="cbar-row">
+    <span class="cbar-label" style="color:var(--color-text-secondary)">Target</span>
+    <div class="cbar-bg"><div class="cbar-fill" style="width:${(target/maxUPT*100).toFixed(1)}%;background:var(--color-border-secondary)"></div></div>
+    <span class="cbar-val" style="color:var(--color-text-secondary)">${target} u/t</span>
+  </div>`;
+
+  const barPct = Math.min((avgUPT/target)*100, 120);
+  document.getElementById('p-targetBar').style.width = barPct.toFixed(1)+'%';
+  document.getElementById('p-targetBar').style.background = avgUPT>target*1.05?'#E24B4A':'#378ADD';
+  document.getElementById('p-vsTargetLabel').textContent = avgUPT>0?`${avgUPT.toFixed(0)} units/tonne vs target ${target}`:'—';
+
+  const tag=document.getElementById('p-vTag'), txt=document.getElementById('p-vText');
+  if (!avgUPT) return;
+  if (avgUPT<=target) {
+    tag.className='v-tag tag-good'; tag.textContent='On target';
+    txt.textContent=`Avg consumption is ${avgUPT.toFixed(0)} units/tonne — within your target of ${target}. Total power bill today: ₹${fmt(totalBill)}.`;
+  } else if (avgUPT<=target*1.08) {
+    tag.className='v-tag tag-avg'; tag.textContent='Slightly over target';
+    txt.textContent=`Avg is ${avgUPT.toFixed(0)} units/tonne vs target ${target}. Extra cost today: ₹${fmt(extraCost)}. Check which shift is driving this.`;
+  } else {
+    tag.className='v-tag tag-poor'; tag.textContent='High consumption';
+    txt.textContent=`Avg is ${avgUPT.toFixed(0)} units/tonne — ${(avgUPT-target).toFixed(0)} units above target. Extra cost today: ₹${fmt(extraCost)}. Investigate furnace efficiency, cobble losses, and idle running time.`;
+  }
+}
+
+calcYield(); calcBreak(); calcPower();
+</script>
