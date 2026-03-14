@@ -1,4 +1,5 @@
 import { initializeApp } from 'firebase/app';
+import { getAnalytics, isSupported } from 'firebase/analytics';
 import {
   getFirestore,
   collection,
@@ -29,22 +30,28 @@ const firebaseConfig = hasEnv
       storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
       messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
       appId: import.meta.env.VITE_FIREBASE_APP_ID,
+      measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
     }
   : null;
 
 let app = null;
 let db = null;
 let auth = null;
+let analyticsPromise = Promise.resolve(null);
 
 if (hasEnv && firebaseConfig) {
   app = initializeApp(firebaseConfig);
   db = getFirestore(app);
   auth = getAuth(app);
+  analyticsPromise =
+    typeof window !== 'undefined' && firebaseConfig.measurementId
+      ? isSupported().then((ok) => (ok ? getAnalytics(app) : null))
+      : Promise.resolve(null);
 } else {
   console.warn('Firebase env vars missing; running in local-only mode. Add keys in .env to enable sync.');
 }
 
-export { app, db, auth };
+export { app, db, auth, analyticsPromise };
 
 const noAuthUser = { uid: 'local-demo-user' };
 
